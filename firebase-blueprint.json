@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "Lead": {
+      "title": "Lead",
+      "description": "A potential customer or sales lead.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "source": { "type": "string" },
+        "status": { 
+          "type": "string",
+          "enum": ["new", "contacted", "follow-up", "booked", "lost"]
+        },
+        "lastContactedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "notes": { "type": "string" },
+        "conversations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "role": { "type": "string", "enum": ["user", "assistant", "system"] },
+              "content": { "type": "string" },
+              "timestamp": { "type": "string", "format": "date-time" }
+            }
+          }
+        }
+      },
+      "required": ["name", "email", "status", "createdAt"]
+    },
+    "User": {
+      "title": "User",
+      "description": "An administrative user of the T&F Revenue Engine.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "user"] }
+      },
+      "required": ["uid", "email", "role"]
+    }
+  },
+  "firestore": {
+    "/leads/{leadId}": {
+      "schema": "Lead",
+      "description": "Collection of leads managed by the system."
+    },
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Collection of system users and their roles."
+    }
+  }
+}

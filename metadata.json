@@ -1,0 +1,9 @@
+{
+  "name": "T&F Revenue Engine",
+  "description": "An autonomous sales machine that finds leads, manages CRM data, runs automated follow-ups, and books appointments using AI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
