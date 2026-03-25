@@ -67,6 +67,13 @@ export default function App() {
     return () => unsubscribe();
   }, [isAuthReady, user]);
 
+  useEffect(() => {
+    if (selectedLead) {
+      const updated = leads.find(l => l.id === selectedLead.id);
+      if (updated) setSelectedLead(updated);
+    }
+  }, [leads]);
+
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
     try {
@@ -162,7 +169,7 @@ export default function App() {
 
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard leads={leads} />;
       case 'leads':
         return (
           <LeadList 
@@ -205,13 +212,13 @@ export default function App() {
           </div>
         );
       default:
-        return <Dashboard />;
+        return <Dashboard leads={leads} />;
     }
   };
 
   return (
     <div className="flex h-screen bg-[#141414] overflow-hidden">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} user={user} />
       <main className="flex-1 overflow-hidden">
         {renderContent()}
       </main>

@@ -5,14 +5,16 @@
 
 import React from 'react';
 import { LayoutDashboard, Users, Send, Calendar, Settings, BarChart3, Zap } from 'lucide-react';
+import { User as FirebaseUser } from 'firebase/auth';
 import { cn } from '../lib/utils';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  user: FirebaseUser | null;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user }) => {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'leads', label: 'CRM / Leads', icon: Users },
@@ -55,12 +57,16 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
       
       <div className="p-6 border-t border-[#2A2A2A]">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center text-xs font-bold">
-            YS
-          </div>
-          <div>
-            <p className="text-xs font-bold">Young Slim</p>
-            <p className="text-[10px] opacity-50">Admin Account</p>
+          {user?.photoURL ? (
+            <img src={user.photoURL} alt={user.displayName || 'User'} className="w-8 h-8 rounded-full border border-[#2A2A2A]" referrerPolicy="no-referrer" />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-[#2A2A2A] flex items-center justify-center text-xs font-bold">
+              {user?.displayName?.charAt(0) || 'U'}
+            </div>
+          )}
+          <div className="overflow-hidden">
+            <p className="text-xs font-bold truncate">{user?.displayName || 'Unknown User'}</p>
+            <p className="text-[10px] opacity-50 truncate">{user?.email || 'Admin Account'}</p>
           </div>
         </div>
       </div>

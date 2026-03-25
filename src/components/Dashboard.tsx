@@ -20,28 +20,38 @@ import {
   YAxis, 
   CartesianGrid, 
   Tooltip, 
-  ResponsiveContainer,
-  AreaChart,
-  Area
+  ResponsiveContainer
 } from 'recharts';
+import { Lead } from '../types';
+import { formatDate } from '../lib/utils';
 
-const data = [
-  { name: 'Mon', leads: 12, booked: 2 },
-  { name: 'Tue', leads: 19, booked: 4 },
-  { name: 'Wed', leads: 15, booked: 3 },
-  { name: 'Thu', leads: 22, booked: 6 },
-  { name: 'Fri', leads: 30, booked: 8 },
-  { name: 'Sat', leads: 10, booked: 1 },
-  { name: 'Sun', leads: 8, booked: 1 },
-];
+interface DashboardProps {
+  leads: Lead[];
+}
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC<DashboardProps> = ({ leads }) => {
+  const totalLeads = leads.length;
+  const bookedMeetings = leads.filter(l => l.status === 'booked').length;
+  const activeConversations = leads.filter(l => (l.conversations?.length || 0) > 0).length;
+  const conversionRate = totalLeads > 0 ? ((bookedMeetings / totalLeads) * 100).toFixed(1) : '0';
+
+  const recentActivity = leads.slice(0, 5).map(l => ({
+    name: l.name,
+    action: l.status === 'booked' ? 'Meeting booked' : (l.conversations?.length || 0) > 0 ? 'AI response sent' : 'New lead captured',
+    time: formatDate(l.createdAt),
+    source: l.source
+  }));
+
+  const chartData = [
+    { name: 'Total', leads: totalLeads, booked: bookedMeetings },
+  ];
+
   return (
     <div className="p-8 space-y-8 bg-[#E4E3E0] min-h-screen overflow-y-auto">
       <header className="flex justify-between items-end">
         <div>
           <h2 className="text-3xl font-serif italic text-[#141414]">Revenue Overview</h2>
-          <p className="text-sm text-[#141414]/60 font-mono">Performance metrics for the last 7 days</p>
+          <p className="text-sm text-[#141414]/60 font-mono">Real-time performance metrics</p>
         </div>
         <div className="flex gap-2">
           <button className="px-4 py-2 bg-[#141414] text-[#E4E3E0] text-xs font-bold uppercase tracking-widest rounded hover:bg-[#2A2A2A] transition-colors">
@@ -53,10 +63,10 @@ const Dashboard: React.FC = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Leads', value: '1,284', change: '+12.5%', icon: Users, positive: true },
-          { label: 'Active Conversations', value: '42', change: '+5.2%', icon: MessageSquare, positive: true },
-          { label: 'Booked Meetings', value: '18', change: '-2.1%', icon: Calendar, positive: false },
-          { label: 'Conversion Rate', value: '14.2%', change: '+1.4%', icon: TrendingUp, positive: true },
+          { label: 'Total Leads', value: totalLeads.toLocaleString(), change: '+0%', icon: Users, positive: true },
+          { label: 'Active Conversations', value: activeConversations.toLocaleString(), change: '+0%', icon: MessageSquare, positive: true },
+          { label: 'Booked Meetings', value: bookedMeetings.toLocaleString(), change: '+0%', icon: Calendar, positive: true },
+          { label: 'Conversion Rate', value: `${conversionRate}%`, change: '+0%', icon: TrendingUp, positive: true },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-6 border border-[#141414]/10 rounded-lg shadow-sm">
             <div className="flex justify-between items-start mb-4">
@@ -80,7 +90,7 @@ const Dashboard: React.FC = () => {
           <h3 className="text-sm font-serif italic mb-6">Lead Acquisition vs Bookings</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
+              <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
                 <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
@@ -96,23 +106,9 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-6 border border-[#141414]/10 rounded-lg shadow-sm">
-          <h3 className="text-sm font-serif italic mb-6">Revenue Growth (Projected)</h3>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#F27D26" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#F27D26" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#888' }} />
-                <Tooltip />
-                <Area type="monotone" dataKey="leads" stroke="#F27D26" fillOpacity={1} fill="url(#colorRevenue)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
+          <h3 className="text-sm font-serif italic mb-6">Growth Trends</h3>
+          <div className="h-64 flex items-center justify-center text-[#141414]/40 text-xs italic">
+            Gathering more data to show trends...
           </div>
         </div>
       </div>
@@ -124,12 +120,10 @@ const Dashboard: React.FC = () => {
           <button className="text-xs font-bold text-[#F27D26] uppercase tracking-widest">View All</button>
         </div>
         <div className="divide-y divide-[#141414]/5">
-          {[
-            { name: 'Alex Rivera', action: 'New lead captured', time: '2 mins ago', source: 'IG Ad' },
-            { name: 'Sarah Chen', action: 'Meeting booked', time: '15 mins ago', source: 'Follow-up' },
-            { name: 'Marcus Johnson', action: 'AI response sent', time: '1 hour ago', source: 'Direct' },
-            { name: 'Elena Gilbert', action: 'Follow-up #2 sent', time: '3 hours ago', source: 'FB Form' },
-          ].map((activity, i) => (
+          {recentActivity.length === 0 && (
+            <div className="p-8 text-center text-[#141414]/40 text-xs italic">No activity yet. Add your first lead to begin.</div>
+          )}
+          {recentActivity.map((activity, i) => (
             <div key={i} className="p-4 flex items-center justify-between hover:bg-[#141414]/5 transition-colors cursor-pointer group">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded bg-[#141414]/5 flex items-center justify-center font-bold text-[#141414]">

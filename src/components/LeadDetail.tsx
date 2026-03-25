@@ -35,7 +35,7 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onBack, onUpdateStatus })
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
 
     const userMessage: ConversationMessage = {
       id: Date.now().toString(),
@@ -47,13 +47,14 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onBack, onUpdateStatus })
     const leadRef = doc(db, 'leads', lead.id);
     
     try {
+      setIsTyping(true);
+      setInput('');
+      
+      // Update Firestore with user message
       await updateDoc(leadRef, {
         conversations: arrayUnion(userMessage)
       });
       
-      setInput('');
-      setIsTyping(true);
-
       const systemPrompt = `You are an autonomous sales agent for T&F Revenue Engine. 
       You are talking to ${lead.name} (${lead.email}). 
       The current status of this lead is ${lead.status}.
@@ -71,11 +72,13 @@ const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onBack, onUpdateStatus })
         timestamp: new Date().toISOString(),
       };
 
+      // Update Firestore with AI response
       await updateDoc(leadRef, {
         conversations: arrayUnion(assistantMessage)
       });
     } catch (error) {
       console.error("Firestore/AI Error:", error);
+      // Optionally add a system message to the local UI or Firestore to show failure
     } finally {
       setIsTyping(false);
     }
